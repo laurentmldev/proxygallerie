@@ -1,0 +1,83 @@
+services:
+  # nginx itself. Configuration for each proxied host (which domain,
+  # which backend, HTTPS enforcement) is generated automatically by
+  # docker-gen (built into this image) whenever a container elsewhere
+  # on the "edge" network declares VIRTUAL_HOST / LETSENCRYPT_HOST
+  # labels - see ../photographer-site/docker-compose.yml.
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      # The only two ports this whole stack exposes to the internet.
+      # Port 80 is never used to serve the site itself - only to
+      # redirect to https:// and to answer Let's Encrypt's HTTP-01
+      # domain-ownership challenge (see acme-companion below). Every
+      # actual request is served over 443 (TLS).
+      - "80:80"
+      - "443:443"
+    networks:
+      - edge
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost:/etc/nginx/vhost.d
+      - acme_html:/usr/share/nginx/html
+      # Extra directives (HSTS) injected into photo.laurentml.fr's
+      # server block specifically - a plain file bind mounted at a
+      # path inside the "vhost" named volume above.
+      - ./vhost.d/laurentml.fr:/etc/nginx/vhost.d/laurentml.fr:ro
+      - ./vhost.d/photo.laurentml.fr:/etc/nginx/vhost.d/photo.laurentml.fr:ro
+      - ./vhost.d/quizzart.laurentml.fr:/etc/nginx/vhost.d/quizzart.laurentml.fr:ro
+      - ./vhost.d/gravity.laurentml.fr:/etc/nginx/vhost.d/gravity.laurentml.fr:ro
+      # Read-only: nginx-proxy watches the Docker API to notice when
+      # containers with VIRTUAL_HOST appear/disappear, so it can
+      # regenerate its config - it never needs to control containers.
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+      # Modern TLS only (TLS 1.2+, no weak ciphers). "intermediate" is
+      # nginx-proxy's own default - set explicitly so it's visible here
+      # rather than implied.
+      SSL_POLICY: Mozilla-Intermediate
+    labels:
+      # Marks this as the proxy container for acme-companion below.
+      - "com.github.nginx-proxy.nginx"
+
+  # Requests and renews Let's Encrypt certificates automatically for
+  # any container advertising LETSENCRYPT_HOST, and reloads nginx-proxy
+  # whenever a cert is issued or renewed. Nothing to run by hand, no
+  # cron job to maintain.
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    networks:
+      - edge
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - acme_html:/usr/share/nginx/html
+      - acme_state:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # Points acme-companion at the proxy container to reload once a
+      # certificate is (re)issued (it also auto-detects via the label
+      # above; set explicitly so this isn't relying on guesswork).
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      # Let's Encrypt sends expiry warnings here if renewal ever breaks.
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL:?set LETSENCRYPT_EMAIL in .env}
+
+networks:
+  # Shared with the photographer-site stack so nginx can reach it by
+  # container name without publishing its port to the host at all.
+  # Created once, outside of either compose file:
+  #   docker network create edge
+  edge:
+    name: edge
+
+volumes:
+  certs:
+  vhost:
+  acme_html:
+  acme_state:
