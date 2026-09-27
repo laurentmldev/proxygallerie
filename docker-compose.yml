@@ -42,6 +42,27 @@ services:
       # Marks this as the proxy container for acme-companion below.
       - "com.github.nginx-proxy.nginx"
 
+  # The root domain's home page: a gallery of every site behind this
+  # proxy, built live from the gallery.* labels (or GALLERY_* env vars)
+  # each site declares in its own compose file - see gallery/app.py and
+  # the README. It is itself just another nginx-proxy backend.
+  gallery:
+    build: ./gallery
+    container_name: gallery
+    restart: unless-stopped
+    networks:
+      - edge
+    volumes:
+      # Read-only use of the Docker API: it only lists and inspects
+      # running containers, the same way nginx-proxy discovers them.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      VIRTUAL_HOST: ${ROOT_DOMAIN:-laurentml.fr}
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${ROOT_DOMAIN:-laurentml.fr}
+      PAGE_TITLE: ${GALLERY_PAGE_TITLE:-laurentml.fr}
+      PAGE_SUBTITLE: ${GALLERY_PAGE_SUBTITLE:-}
+
   # Requests and renews Let's Encrypt certificates automatically for
   # any container advertising LETSENCRYPT_HOST, and reloads nginx-proxy
   # whenever a cert is issued or renewed. Nothing to run by hand, no
