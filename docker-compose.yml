@@ -29,6 +29,7 @@ services:
       - ./vhost.d/photo.laurentml.fr:/etc/nginx/vhost.d/photo.laurentml.fr:ro
       - ./vhost.d/quizzart.laurentml.fr:/etc/nginx/vhost.d/quizzart.laurentml.fr:ro
       - ./vhost.d/gravity.laurentml.fr:/etc/nginx/vhost.d/gravity.laurentml.fr:ro
+      - ./vhost.d/chapeliers.laurentml.fr:/etc/nginx/vhost.d/chapeliers.laurentml.fr:ro
       # Read-only: nginx-proxy watches the Docker API to notice when
       # containers with VIRTUAL_HOST appear/disappear, so it can
       # regenerate its config - it never needs to control containers.
