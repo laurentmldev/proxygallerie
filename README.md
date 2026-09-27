@@ -88,6 +88,49 @@ handles both the renewal and the reload.
 Once the cert is issued, `https://photo.laurentml.fr` should serve the
 site, and `http://photo.laurentml.fr` should 301-redirect to it.
 
+## Root domain gallery (laurentml.fr)
+
+The `gallery` service in this stack serves the root domain
+(`ROOT_DOMAIN`, default `laurentml.fr`) with a page listing every site
+behind the proxy: a card per site with its title, description,
+thumbnail and a link to it.
+
+Nothing on the proxy side names those sites. Just like nginx-proxy
+reads `VIRTUAL_HOST` and acme-companion reads `LETSENCRYPT_HOST`, the
+gallery reads the Docker API (read-only) and lists every running
+container that has a `VIRTUAL_HOST` **and** a gallery title. Each site
+declares its own card in its own `docker-compose.yml`, as labels:
+
+```yaml
+services:
+  web:
+    # ...
+    environment:
+      VIRTUAL_HOST: photo.laurentml.fr
+      VIRTUAL_PORT: "3000"
+      LETSENCRYPT_HOST: photo.laurentml.fr
+    labels:
+      gallery.title: "Photo"
+      gallery.description: "Portfolio of Laurent's photographs"
+      gallery.thumbnail: "/gallery-thumb.jpg"   # path on the site, or a full URL
+      gallery.order: "1"                        # optional, lowest first
+```
+
+The same keys also work as environment variables (`GALLERY_TITLE`,
+`GALLERY_DESCRIPTION`, `GALLERY_THUMBNAIL`, `GALLERY_ORDER`, plus
+`GALLERY_URL` to override the default `https://<first VIRTUAL_HOST>`);
+labels win when both are set. A container without a title is simply
+not listed, and a site without a thumbnail gets a letter tile.
+
+The list refreshes every 30 seconds, so a site appears or disappears
+shortly after its container starts or stops. `https://laurentml.fr/sites.json`
+returns the same data as JSON.
+
+Setup: point the root domain's `A`/`AAAA` record at this server, then
+`docker compose up -d --build`. Make sure no other container already
+uses `VIRTUAL_HOST=laurentml.fr`, or nginx-proxy will split traffic
+between the two.
+
 ## Day to day
 
 - Certificates auto-renew; nothing to run manually.
