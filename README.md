@@ -157,17 +157,14 @@ service (`maintenance/link-certs.sh`, checks every minute):
 - **Where the certificate is.** acme-companion stores a certificate in
   a folder named after its *first* host (`LETSENCRYPT_HOST=a.fr,b.fr`
   goes in `certs/a.fr/`) and deletes its per-host links when the
-  container stops. `maintenance-certs` keeps a permanent link per host
-  in `certs/maintenance/<host>`, recorded while the site is running.
+  container stops. `maintenance-certs` reads the host names listed in
+  each certificate and keeps a permanent link per host in
+  `certs/maintenance/<host>`, whether the site is running or not.
 - **Reading the private key** at request time, as nginx's unprivileged
   `nginx` user. acme-companion is set to make keys readable by that
   group (`FILES_GID: "101"`, `FILES_PERMS: "640"`), and
   `maintenance-certs` applies the same to certificates acme-companion
   isn't touching (stopped sites).
-
-A host that is the 2nd/3rd name of a certificate and whose container
-was already stopped before `maintenance-certs` first ran only gets the
-page over HTTPS after its container has run once.
 
 When adding a new site, add the same `include` line to its
 `vhost.d/<host>` file.
