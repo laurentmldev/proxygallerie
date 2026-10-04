@@ -150,14 +150,24 @@ bare nginx error or a browser TLS error. Two cases are covered:
   of their own) and serves the page over HTTPS with the certificate
   acme-companion issued earlier for that site.
 
-For that second case nginx reads the site's private key at request
-time, as its unprivileged `nginx` user, so acme-companion is set to
-make keys readable by that group (`FILES_GID: "101"`,
-`FILES_PERMS: "640"`). acme-companion applies this the next time it
-checks each running site's certificate (on start and then hourly). A
-site that was already stopped when this was deployed keeps a root-only
-key until it runs again; until then it still shows nothing over HTTPS,
-as before (plain HTTP shows the page).
+For that second case nginx needs two things it can't get from
+acme-companion alone, both handled by the small `maintenance-certs`
+service (`maintenance/link-certs.sh`, checks every minute):
+
+- **Where the certificate is.** acme-companion stores a certificate in
+  a folder named after its *first* host (`LETSENCRYPT_HOST=a.fr,b.fr`
+  goes in `certs/a.fr/`) and deletes its per-host links when the
+  container stops. `maintenance-certs` keeps a permanent link per host
+  in `certs/maintenance/<host>`, recorded while the site is running.
+- **Reading the private key** at request time, as nginx's unprivileged
+  `nginx` user. acme-companion is set to make keys readable by that
+  group (`FILES_GID: "101"`, `FILES_PERMS: "640"`), and
+  `maintenance-certs` applies the same to certificates acme-companion
+  isn't touching (stopped sites).
+
+A host that is the 2nd/3rd name of a certificate and whose container
+was already stopped before `maintenance-certs` first ran only gets the
+page over HTTPS after its container has run once.
 
 When adding a new site, add the same `include` line to its
 `vhost.d/<host>` file.

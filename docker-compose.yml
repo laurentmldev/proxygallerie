@@ -103,6 +103,20 @@ services:
       FILES_GID: "101"
       FILES_PERMS: "640"
 
+  # Keeps, for every host that has a certificate, a link to it that
+  # survives the site's container stopping (acme-companion deletes its
+  # own per-host links then), so the maintenance page can still be
+  # served over HTTPS - see maintenance/link-certs.sh.
+  maintenance-certs:
+    image: alpine:3
+    container_name: maintenance-certs
+    restart: unless-stopped
+    network_mode: none
+    volumes:
+      - certs:/etc/nginx/certs
+      - ./maintenance/link-certs.sh:/link-certs.sh:ro
+    command: ["sh", "/link-certs.sh"]
+
 networks:
   # Shared with the photographer-site stack so nginx can reach it by
   # container name without publishing its port to the host at all.
