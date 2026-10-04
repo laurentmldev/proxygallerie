@@ -1,5 +1,5 @@
 # Extra directives nginx-proxy injects into the HTTPS server block for
-# photo.laurentml.fr specifically (mounted read-only into the
+# metaindex.fr specifically (mounted read-only into the
 # nginx-proxy container at /etc/nginx/vhost.d/photo.laurentml.fr - see
 # docker-compose.yml). Applies only once a certificate exists for this
 # host, same as the rest of the HTTPS server block.
@@ -7,7 +7,9 @@
 # Tells browsers to remember, for a year, to only ever reach this site
 # over HTTPS - reinforces "HTTPS only" beyond just redirecting HTTP.
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+client_max_body_size 200m;
 
 # "Site en maintenance" page when the backend isn't answering
 # (see maintenance/maintenance.conf).
 include /etc/nginx/snippets/maintenance.conf;
+
