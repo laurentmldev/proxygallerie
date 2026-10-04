@@ -27,9 +27,10 @@ services:
       # path inside the "vhost" named volume above.
       - ./vhost.d/laurentml.fr:/etc/nginx/vhost.d/laurentml.fr:ro
       - ./vhost.d/photo.laurentml.fr:/etc/nginx/vhost.d/photo.laurentml.fr:ro
-      - ./vhost.d/quizzart.laurentml.fr:/etc/nginx/vhost.d/quizzart.laurentml.fr:ro
+      - ./vhost.d/imagingyou.me:/etc/nginx/vhost.d/imagingyou.me:ro
+      - ./vhost.d/metaindex.laurentml.fr:/etc/nginx/vhost.d/metaindex.laurentml.fr:ro
+      - ./vhost.d/metaindex.fr:/etc/nginx/vhost.d/metaindex.fr:ro
       - ./vhost.d/gravity.laurentml.fr:/etc/nginx/vhost.d/gravity.laurentml.fr:ro
-      - ./vhost.d/chapeliers.laurentml.fr:/etc/nginx/vhost.d/chapeliers.laurentml.fr:ro
       # Read-only: nginx-proxy watches the Docker API to notice when
       # containers with VIRTUAL_HOST appear/disappear, so it can
       # regenerate its config - it never needs to control containers.
