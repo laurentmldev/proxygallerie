@@ -108,14 +108,16 @@ services:
   # own per-host links then), so the maintenance page can still be
   # served over HTTPS - see maintenance/link-certs.sh.
   maintenance-certs:
-    image: alpine:3
+    # Same image as acme-companion (already pulled), for its openssl CLI.
+    image: nginxproxy/acme-companion
     container_name: maintenance-certs
     restart: unless-stopped
     network_mode: none
     volumes:
       - certs:/etc/nginx/certs
       - ./maintenance/link-certs.sh:/link-certs.sh:ro
-    command: ["sh", "/link-certs.sh"]
+    entrypoint: ["sh", "/link-certs.sh"]
+    command: []
 
 networks:
   # Shared with the photographer-site stack so nginx can reach it by
