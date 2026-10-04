@@ -131,6 +131,37 @@ Setup: point the root domain's `A`/`AAAA` record at this server, then
 uses `VIRTUAL_HOST=laurentml.fr`, or nginx-proxy will split traffic
 between the two.
 
+## Maintenance page
+
+When a site behind the proxy isn't answering, visitors get a "Site en
+maintenance / back soon" page (`maintenance/html/index.html`, French
+and English, auto-refreshes every minute) with an HTTP 503 instead of a
+bare nginx error or a browser TLS error. Two cases are covered:
+
+- **The container is running but not answering** (crashed app,
+  restarting, still booting, timing out): nginx's own 502/503/504 for
+  that host is replaced by the page. This comes from the
+  `include /etc/nginx/snippets/maintenance.conf;` line at the end of
+  each `vhost.d/<host>` file. Error pages the app itself returns are
+  left alone.
+- **The container is stopped**: nginx-proxy then drops the host from
+  its config entirely. `conf.d/maintenance-fallback.conf` catches such
+  hostnames (it only ever answers for names that have no server block
+  of their own) and serves the page over HTTPS with the certificate
+  acme-companion issued earlier for that site.
+
+For that second case nginx reads the site's private key at request
+time, as its unprivileged `nginx` user, so acme-companion is set to
+make keys readable by that group (`FILES_GID: "101"`,
+`FILES_PERMS: "640"`). acme-companion applies this the next time it
+checks each running site's certificate (on start and then hourly). A
+site that was already stopped when this was deployed keeps a root-only
+key until it runs again; until then it still shows nothing over HTTPS,
+as before (plain HTTP shows the page).
+
+When adding a new site, add the same `include` line to its
+`vhost.d/<host>` file.
+
 ## Day to day
 
 - Certificates auto-renew; nothing to run manually.

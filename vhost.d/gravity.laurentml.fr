@@ -7,3 +7,7 @@
 # Tells browsers to remember, for a year, to only ever reach this site
 # over HTTPS - reinforces "HTTPS only" beyond just redirecting HTTP.
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+# "Site en maintenance" page when the backend isn't answering
+# (see maintenance/maintenance.conf).
+include /etc/nginx/snippets/maintenance.conf;

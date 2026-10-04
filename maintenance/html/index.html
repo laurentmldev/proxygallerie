@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="60">
+<title>Maintenance en cours · Back soon</title>
+<style>
+  :root { --bg: #f6f5f2; --fg: #1d1d1f; --muted: #6b6b70; --accent: #c2410c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141416; --fg: #ececf0; --muted: #9a9aa2; --accent: #fb923c; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px; background: var(--bg); color: var(--fg);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 34rem; text-align: center; }
+  .icon { width: 56px; height: 56px; color: var(--accent); }
+  h1 { font-size: 1.6rem; margin: 16px 0 4px; }
+  p { margin: 0 0 4px; }
+  .en { color: var(--muted); }
+  .host { margin-top: 24px; font-size: .9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>
+  </svg>
+  <h1>Site en maintenance</h1>
+  <p>Nous revenons très bientôt. Merci de votre patience&nbsp;!</p>
+  <p class="en">This site is under maintenance and will be back soon.</p>
+  <p class="host"><!--# echo var="host" default="" --></p>
+</main>
+</body>
+</html>
