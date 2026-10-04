@@ -29,6 +29,12 @@ services:
       - ./vhost.d/photo.laurentml.fr:/etc/nginx/vhost.d/photo.laurentml.fr:ro
       - ./vhost.d/quizzart.laurentml.fr:/etc/nginx/vhost.d/quizzart.laurentml.fr:ro
       - ./vhost.d/gravity.laurentml.fr:/etc/nginx/vhost.d/gravity.laurentml.fr:ro
+      - ./vhost.d/chapeliers.laurentml.fr:/etc/nginx/vhost.d/chapeliers.laurentml.fr:ro
+      # "Site en maintenance" page, shown instead of a bare 502/503/504
+      # when a site's backend is down - see the README.
+      - ./maintenance/html:/usr/share/nginx/maintenance:ro
+      - ./maintenance/maintenance.conf:/etc/nginx/snippets/maintenance.conf:ro
+      - ./conf.d/maintenance-fallback.conf:/etc/nginx/conf.d/maintenance-fallback.conf:ro
       # Read-only: nginx-proxy watches the Docker API to notice when
       # containers with VIRTUAL_HOST appear/disappear, so it can
       # regenerate its config - it never needs to control containers.
@@ -88,6 +94,13 @@ services:
       NGINX_PROXY_CONTAINER: nginx-proxy
       # Let's Encrypt sends expiry warnings here if renewal ever breaks.
       DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL:?set LETSENCRYPT_EMAIL in .env}
+      # Private keys default to root-only (600). Making them readable by
+      # nginx-proxy's "nginx" group (gid 101) lets the maintenance page
+      # still be served over HTTPS for a site whose container is
+      # stopped (conf.d/maintenance-fallback.conf loads that site's
+      # cert at request time, from nginx's unprivileged worker).
+      FILES_GID: "101"
+      FILES_PERMS: "640"
 
 networks:
   # Shared with the photographer-site stack so nginx can reach it by
