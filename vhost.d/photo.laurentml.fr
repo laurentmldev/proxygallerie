@@ -11,3 +11,8 @@ add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" alway
 # "Site en maintenance" page when the backend isn't answering
 # (see maintenance/maintenance.conf).
 include /etc/nginx/snippets/maintenance.conf;
+
+# Largest request accepted (nginx's default is 1 MB). The site's admin
+# mode uploads photos one per request, up to ADMIN_MAX_UPLOAD_MB (50 MB
+# by default) each, so allow a little more than that.
+client_max_body_size 60m;
